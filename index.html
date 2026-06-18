@@ -135,6 +135,7 @@
   .divider.open { width: 240px; }
 
   .message {
+    display: block;
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(1.3rem, 4.5vw, 2.2rem);
     font-weight: 300;
@@ -143,16 +144,19 @@
     margin-bottom: 0px;
     letter-spacing: 0.01em;
     transition: margin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
   }
   .message.expanded {
     margin-bottom: clamp(1.8rem, 5vh, 3rem);
     color: var(--starlight); 
   }
 
-  /* Keep full words together, preventing mid-word letter breaks */
+  /* HARD CONSTRAINT: Force words to never drop characters across lines */
   .word-wrapper {
     display: inline-block;
-    white-space: nowrap;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
   }
 
   .char {
@@ -462,17 +466,18 @@ document.getElementById('hl').innerHTML = `${customName} <em>${customHeadline}</
 document.getElementById('wsh').textContent = customWish;
 document.getElementById('nm').textContent = customSign;
 
-/* ── KINETIC CHARACTER INJECTION (WITH FIXED WORD WRAPPING) ── */
+/* ── KINETIC CHARACTER INJECTION (WITH REINFORCED WRAPPING) ── */
 const msgEl = document.getElementById('msg');
 const charElements = [];
 
-// Split into words first to create clean wrap anchors
+// Split message perfectly by structural blank space parameters
 const words = customMessage.split(" ");
 words.forEach((word, wIdx) => {
+  if (word.length === 0) return;
+
   const wordSpan = document.createElement('span');
   wordSpan.className = 'word-wrapper';
   
-  // Inject characters into this word container
   word.split("").forEach(char => {
     const span = document.createElement('span');
     span.className = 'char';
@@ -483,11 +488,11 @@ words.forEach((word, wIdx) => {
   
   msgEl.appendChild(wordSpan);
   
-  // Append a standard spacing character between words
+  // Inject explicit structural breaking spaces between localized nodes
   if (wIdx < words.length - 1) {
     const spaceSpan = document.createElement('span');
     spaceSpan.className = 'char';
-    spaceSpan.innerHTML = '&nbsp;';
+    spaceSpan.innerHTML = '&nbsp;'; 
     msgEl.appendChild(spaceSpan);
     charElements.push(spaceSpan);
   }
