@@ -461,7 +461,7 @@ const customHeadline = urlParams.get('headline') || "";
 const customWish = urlParams.get('wish') || "Well it looks just like —";
 const customSign = urlParams.get('sign') || "You.";
 
-// CHANGED: "how" replaced with "what" for grammatically seamless poetic phrasing
+// FIXED FALLBACK CONFIGURATION STRING: Changed "how" to "what" 
 const customMessage = urlParams.get('message') || "Have you ever wondered what a beautiful moment looks like ?";
 
 document.getElementById('hl').innerHTML = `${customName} <em>${customHeadline}</em>`;
@@ -472,6 +472,7 @@ document.getElementById('nm').textContent = customSign;
 const msgEl = document.getElementById('msg');
 const charElements = [];
 
+// FIXED INTERPRETATION LOOP: Targets 'customMessage' string to inject "what" explicitly
 const words = customMessage.split(" ");
 words.forEach((word, wIdx) => {
   if (word.length === 0) return;
