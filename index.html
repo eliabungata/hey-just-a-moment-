@@ -4,265 +4,230 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>For Misoji</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght=0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --deep-blue:   #0f1e36; 
-    --royal-blue:  #1d4ed8; 
-    --light-blue:  #3b82f6; 
-    --sky-blue:    #60a5fa; 
-    --warm-cream:  #f8fafc; 
-    --deeptext:    #0a1526; 
+    --space-black: #030712;
+    --cosmic-indigo:#0f172a;
+    --royal-blue:   #3b82f6; 
+    --nebula-purple:#8b5cf6;
+    --starlight:    #f8fafc;
+    --glass-sheen:  linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%);
   }
 
   html, body { width: 100%; height: 100%; overflow: hidden; position: fixed; }
 
   body {
-    background: linear-gradient(-45deg, #f1f5f9, #f8fafc, #e0f2fe, #f0fdfa);
+    background: linear-gradient(-45deg, #030712, #0b1329, #1e1b4b, #030712);
     background-size: 400% 400%;
-    animation: sunlightShift 22s ease infinite;
-    color: var(--deep-blue);
-    font-family: 'DM Sans', sans-serif;
+    animation: celestialShift 25s ease infinite;
+    color: var(--starlight);
+    font-family: 'Plus Jakarta Sans', sans-serif;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    perspective: 1000px;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
-  @keyframes sunlightShift {
+  @keyframes celestialShift {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
 
-  /* ── CANVASES ── */
-  canvas { position: fixed; inset: 0; pointer-events: none; }
-  #nebulaCanvas { z-index: 1; }
-  #ptCanvas { z-index: 2; }
-  
-  /* MOVED STAR CANVAS HIGHER: Right behind text inside the card window */
-  #bgCanvas { z-index: 5; } 
-  #interactiveCanvas { z-index: 11; } 
+  /* ── PARALLAX CANVASES ── */
+  canvas { position: fixed; inset: 0; pointer-events: none; will-change: transform; }
+  #nebulaCanvas { z-index: 1; filter: blur(20px); }
+  #bgCanvas { z-index: 2; } 
+  #interactiveCanvas { z-index: 12; } 
 
-  /* ── DYNAMIC BLUE AMBIENT CLOUDS ── */
-  .aurora {
-    position: fixed;
-    pointer-events: none;
-    z-index: 1;
-    border-radius: 50%;
-    filter: blur(100px);
-    mix-blend-mode: multiply;
-    opacity: 0.25; 
-  }
-  .au1 {
-    width: min(500px,120vw); height: min(250px,50vw);
-    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(96,165,250,0.1), transparent);
-    top: -20px; left: -20px;
-  }
-  .au2 {
-    width: min(400px,110vw); height: min(200px,45vw);
-    background: linear-gradient(225deg, rgba(29,78,216,0.08), rgba(248,250,252,0.4), transparent);
-    bottom: -20px; right: -20px;
+  /* ── LUXURY GLASS CARD WITH MOVING SHEEN ── */
+  .card-container {
+    perspective: 1000px;
+    z-index: 5;
+    transition: transform 0.1s ease-out;
   }
 
-  /* ── RINGS ── */
-  .ring {
-    position: fixed;
-    width: min(320px,85vw); height: min(320px,85vw);
-    border-radius: 50%;
-    top: 50%; left: 50%;
-    transform: translate(-50%,-50%) scale(0);
-    z-index: 2;
-    pointer-events: none;
-  }
-  .ring:nth-child(1){ border:1px solid rgba(59,130,246,0.14); animation:ring 12s 0.5s ease-out infinite; }
-  .ring:nth-child(2){ border:1px solid rgba(96,165,250,0.12); animation:ring 12s 5.5s ease-out infinite; }
-  @keyframes ring {
-    0%  { transform:translate(-50%,-50%) scale(0.5); opacity:0.8; }
-    100%{ transform:translate(-50%,-50%) scale(2.2); opacity:0; }
-  }
-
-  /* ── CORNERS ── */
-  .corner {
-    position: fixed; width:32px; height:32px;
-    pointer-events:none; z-index:6; opacity:0;
-    transition: opacity 1.5s 2s ease;
-  }
-  .corner svg { width:100%; height:100%; }
-  .c-tl { top:16px; left:16px; }
-  .c-tr { top:16px; right:16px; transform:scaleX(-1); }
-  .c-bl { bottom:16px; left:16px; transform:scaleY(-1); }
-  .c-br { bottom:16px; right:16px; transform:scale(-1,-1); }
-  @media(max-width:480px){ .corner{ display:none; } }
-
-  /* ── MOBILE CARD WITH SEMI-TRANSPARENT GLASS EFFECTS ── */
   .card {
-    position:relative; z-index:4; text-align:center;
+    position: relative;
+    text-align: center;
     width: min(580px, 90vw);
     max-height: 92vh;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: clamp(2rem, 6vh, 4rem) clamp(1.25rem, 5vw, 3rem);
-    /* High clarity glass backdrop to showcase text-level pass stars */
-    background: rgba(255, 255, 255, 0.45); 
-    border-radius: 20px;
-    backdrop-filter: blur(35px);
-    -webkit-backdrop-filter: blur(35px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 30px 60px rgba(15, 30, 54, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    padding: clamp(2.5rem, 7vh, 4.5rem) clamp(1.5rem, 6vw, 3.5rem);
+    background: rgba(15, 23, 42, 0.45); 
+    border-radius: 24px;
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    overflow: hidden;
   }
   .card::-webkit-scrollbar { width: 0px; background: transparent; }
 
-  /* ALL TEXT SHIELDED AT Z-INDEX 6 SO STARS ROTATE BEHIND THEM EXCLUSIVELY */
+  /* Moving Glass Light Sheen */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: var(--glass-sheen);
+    transform: rotate(45deg);
+    pointer-events: none;
+    z-index: 5;
+    animation: sheenPass 8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  }
+
+  @keyframes sheenPass {
+    0% { transform: translate(-30%, -30%) rotate(45deg); opacity: 0; }
+    10% { opacity: 1; }
+    30% { transform: translate(30%, 30%) rotate(45deg); opacity: 0; }
+    100% { transform: translate(30%, 30%) rotate(45deg); opacity: 0; }
+  }
+
+  /* TEXT ARCHITECTURE */
   .eyebrow, .headline, .divider, .message, .btn-container, .hidden-content {
     position: relative;
-    z-index: 6;
+    z-index: 10;
   }
 
   .eyebrow {
-    font-size: clamp(0.75rem, 2.2vw, 0.95rem);
-    font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
+    font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
     color: var(--royal-blue); 
-    opacity: 0; transform: translateY(10px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-    margin-bottom: clamp(1rem, 4vh, 2rem);
+    text-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    opacity: 0; transform: translateY(15px);
+    transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-bottom: clamp(1rem, 3vh, 1.5rem);
   }
 
   .headline {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(3.2rem, 11vw, 5.5rem);
-    font-weight: 700; line-height: 1.1; 
-    color: var(--deep-blue);
-    opacity: 0; transform: translateY(14px);
-    transition: opacity 0.9s 0.2s ease, transform 0.9s 0.2s ease;
+    font-size: clamp(3.5rem, 12vw, 5.8rem);
+    font-weight: 300; line-height: 1.05; 
+    letter-spacing: -0.02em;
+    color: var(--starlight);
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 1.2s 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     margin-bottom: 0.2rem;
   }
   .headline em {
-    font-style: italic; font-weight: 700;
-    background: linear-gradient(90deg, var(--deep-blue), var(--light-blue));
+    font-style: italic; font-weight: 400;
+    background: linear-gradient(90deg, #a78bfa, #60a5fa);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* DIVIDER */
+  /* SEAMLESS LUXURY DIVIDER */
   .divider {
     height: 1px; 
-    margin: clamp(1.5rem, 4vh, 2.2rem) auto;
-    width: 0; max-width: 200px;
-    background: linear-gradient(90deg, transparent, rgba(29,78,216,0.3), rgba(96,165,250,0.4), transparent);
-    transition: width 1.2s 0.5s cubic-bezier(0.22,1,0.36,1);
+    margin: clamp(1.5rem, 4vh, 2.5rem) auto;
+    width: 0; max-width: 240px;
+    background: linear-gradient(90deg, transparent, rgba(139,92,246,0.5), rgba(59,130,246,0.5), transparent);
+    transition: width 1.5s 0.4s cubic-bezier(0.22,1,0.36,1);
   }
-  .divider.open { width: 200px; }
+  .divider.open { width: 240px; }
 
-  /* MESSAGE */
+  /* KINETIC CHARACTER REVEAL MESSAGE */
   .message {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.4rem, 4.8vw, 2.1rem);
-    font-weight: 400;
-    font-style: italic; line-height: 1.5;
-    color: rgba(15, 30, 54, 0.88); 
+    font-size: clamp(1.4rem, 4.8vw, 2.2rem);
+    font-weight: 300;
+    line-height: 1.6;
+    color: rgba(248, 250, 252, 0.85); 
     margin-bottom: 0px;
-    word-spacing: normal; letter-spacing: 0.005em;
-    transition: margin 0.5s ease, color 0.5s ease;
+    letter-spacing: 0.01em;
+    transition: margin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .message.expanded {
-    margin-bottom: clamp(1.8rem, 5vh, 2.8rem);
-    color: var(--deeptext); 
-  }
-  .w {
-    display: inline; opacity: 0; filter: blur(2px);
-    transition: opacity 0.4s ease, filter 0.4s ease;
-  }
-  .w.on  { opacity: 1; filter: blur(0); }
-  .w.str {
-    font-style: normal; font-weight: 700;
-    background: linear-gradient(90deg, var(--royal-blue), var(--light-blue));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin-bottom: clamp(2rem, 6vh, 3rem);
+    color: var(--starlight); 
   }
 
-  /* HIDDEN WRAPPER CONTAINER */
+  .char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+    filter: blur(4px);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.5s ease;
+  }
+  .char.reveal-on {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+
+  /* HIDDEN REVEAL MECHANISM */
   .hidden-content {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 1.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
+    transition: max-height 1.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s ease;
   }
   .hidden-content.reveal {
     max-height: 400px;
     opacity: 1;
   }
 
-  /* WISH */
   .wish {
     display: block;
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.7rem, 5.8vw, 2.8rem);
-    font-weight: 700;
-    background: linear-gradient(120deg, var(--deep-blue), var(--royal-blue), var(--light-blue), var(--deep-blue));
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    font-weight: 400;
+    background: linear-gradient(120deg, #f8fafc, #a78bfa, #60a5fa, #f8fafc);
     background-size: 300% auto;
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: shimmer 7s linear infinite;
-    margin-bottom: 0.4rem; line-height: 1.3;
+    animation: celestialShimmer 6s linear infinite;
+    margin-bottom: 0.5rem; line-height: 1.3;
   }
-  @keyframes shimmer { to { background-position: 300% center; } }
+  @keyframes celestialShimmer { to { background-position: 300% center; } }
 
-  /* NAME */
   .namesign {
     display: block;
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(2rem, 7vw, 3.4rem);
-    font-style: italic; font-weight: 700;
-    background: linear-gradient(90deg, var(--deep-blue), var(--royal-blue));
+    font-size: clamp(2.2rem, 7.5vw, 3.6rem);
+    font-style: italic; font-weight: 600;
+    background: linear-gradient(90deg, #f8fafc, #a78bfa);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: clamp(1.4rem, 4vh, 2rem);
-    letter-spacing: 0.02em;
+    margin-bottom: clamp(0.5rem, 2vh, 1rem);
+    letter-spacing: 0.03em;
   }
 
-  /* NOTE */
-  .note {
-    font-size: clamp(0.8rem, 2.2vw, 1rem);
-    font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--royal-blue);
-    line-height: 1.4;
-    padding: 0 10px;
-  }
-
-  /* ── HIGHLY DYNAMIC ATTENTION & CURIOSITY BUTTON ── */
+  /* BUTTON STYLING */
   .btn-container {
     display: inline-block;
-    margin-top: clamp(1.8rem, 5vh, 2.8rem);
+    margin-top: clamp(2rem, 6vh, 3.2rem);
   }
 
   .action-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    background: linear-gradient(135deg, #2563eb, #3b82f6, #60a5fa, #1d4ed8);
+    gap: 12px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed, #2563eb, #4f46e5);
     background-size: 300% 100%;
     color: #ffffff;
     border: none;
-    padding: clamp(15px, 4.2vw, 20px) clamp(26px, 6.5vw, 40px);
+    padding: clamp(16px, 4.5vw, 22px) clamp(30px, 7vw, 44px);
     font-size: clamp(0.75rem, 2.2vw, 0.85rem);
-    font-weight: 900;
-    letter-spacing: 0.18em;
+    font-weight: 600;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     border-radius: 50px;
     cursor: pointer;
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(25px);
     transition: opacity 0.8s ease, transform 0.8s ease, box-shadow 0.4s, background-position 0.4s;
     outline: none;
-    z-index: 7;
     -webkit-tap-highlight-color: transparent;
-    animation: magneticPulse 2s infinite ease-in-out, fluidGlow 4s linear infinite;
+    animation: dynamicPulse 2s infinite ease-in-out, fluidGlow 4s linear infinite;
   }
 
   @keyframes fluidGlow {
@@ -271,9 +236,9 @@
     100% { background-position: 0% 50%; }
   }
 
-  @keyframes magneticPulse {
+  @keyframes dynamicPulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.04); }
+    50% { transform: scale(1.03); box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); }
     100% { transform: scale(1); }
   }
 
@@ -282,71 +247,45 @@
     inset: 0;
     border-radius: 50px;
     pointer-events: none;
-    z-index: 6;
+    z-index: -1;
     opacity: 0;
-    border: 2px solid rgba(59, 130, 246, 0.4);
+    border: 2px solid rgba(139, 92, 246, 0.5);
     transform: scale(1);
-    transition: opacity 0.3s;
   }
   
   .action-btn.show ~ .btn-ripple {
-    animation: rippleWave 2.4s infinite cubic-bezier(0.16, 1, 0.3, 1);
+    animation: waveOut 2.5s infinite cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  @keyframes rippleWave {
-    0% { transform: scale(0.96); opacity: 0; }
-    15% { opacity: 0.65; }
-    70% { opacity: 0; }
-    100% { transform: scale(1.22, 1.35); opacity: 0; }
+  @keyframes waveOut {
+    0% { transform: scale(0.95); opacity: 0; }
+    15% { opacity: 0.7; }
+    70% { opacity: 0; transform: scale(1.25, 1.4); }
+    100% { opacity: 0; }
   }
 
   .action-btn .smiley {
     font-size: clamp(1.1rem, 3.5vw, 1.35rem);
-    letter-spacing: normal;
     display: inline-block;
     transform-origin: center bottom;
-    animation: smileyWobble 1.5s infinite alternate ease-in-out;
+    animation: wobble 1.5s infinite alternate ease-in-out;
   }
 
-  .action-btn span.arrow {
-    display: inline-block;
-    font-weight: 900;
-    animation: arrowSlide 0.8s infinite alternate ease-in-out;
-  }
-
-  @media(hover: hover) {
-    .action-btn:hover {
-      background-position: 60% center;
-      box-shadow: 0 15px 35px rgba(29, 78, 216, 0.35), 0 0 22px rgba(96, 165, 250, 0.5);
-      transform: scale(1.05) translateY(-1px);
-    }
-  }
-
-  .action-btn:active {
-    transform: scale(0.97);
-    box-shadow: 0 5px 15px rgba(29, 78, 216, 0.4);
-  }
-
-  @keyframes arrowSlide {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(5px); }
-  }
-
-  @keyframes smileyWobble {
-    0% { transform: scale(1) rotate(-6deg); }
-    100% { transform: scale(1.18) rotate(8deg); }
+  @keyframes wobble {
+    0% { transform: rotate(-5deg); }
+    100% { transform: rotate(8deg) scale(1.1); }
   }
 
   .show { opacity: 1 !important; transform: none !important; }
   
   .hide-btn-container {
     opacity: 0 !important;
-    transform: scale(0.4) !important;
+    transform: scale(0.5) !important;
     pointer-events: none !important;
     margin-top: 0px !important;
     height: 0px !important;
     overflow: hidden;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 </style>
 </head>
@@ -354,101 +293,113 @@
 
 <canvas id="bgCanvas"></canvas>
 <canvas id="nebulaCanvas"></canvas>
-<canvas id="ptCanvas"></canvas>
 <canvas id="interactiveCanvas"></canvas>
 
-<div class="aurora au1"></div>
-<div class="aurora au2"></div>
+<div class="card-container" id="cardContainer">
+  <div class="card">
+    <p class="eyebrow" id="ey">a little note, just for You</p>
+    <h1 class="headline" id="hl">Misoji<em></em></h1>
+    <div class="divider" id="dv"></div>
+    <p class="message" id="msg"></p>
+    
+    <div class="btn-container" id="btnContainer">
+      <button class="action-btn" id="actBtn" onclick="unlockSmile(event)">
+        click to unlock your smile <span class="smiley">😉👍</span> →
+      </button>
+      <div class="btn-ripple"></div>
+    </div>
 
-<div class="ring"></div>
-<div class="ring"></div>
-
-<div class="corner c-tl"><svg viewBox="0 0 48 48" fill="none"><path d="M3 45L3 3L45 3" stroke="rgba(59,130,246,0.25)" stroke-width="1.5"/><circle cx="3" cy="3" r="2" fill="rgba(59,130,246,0.4)"/></svg></div>
-<div class="corner c-tr"><svg viewBox="0 0 48 48" fill="none"><path d="M3 45L3 3L45 3" stroke="rgba(96,165,250,0.25)" stroke-width="1.5"/><circle cx="3" cy="3" r="2" fill="rgba(59,130,246,0.4)"/></svg></div>
-<div class="corner c-bl"><svg viewBox="0 0 48 48" fill="none"><path d="M3 45L3 3L45 3" stroke="rgba(96,165,250,0.25)" stroke-width="1.5"/><circle cx="3" cy="3" r="2" fill="rgba(59,130,246,0.4)"/></svg></div>
-<div class="corner c-br"><svg viewBox="0 0 48 48" fill="none"><path d="M3 45L3 3L45 3" stroke="rgba(59,130,246,0.25)" stroke-width="1.5"/><circle cx="3" cy="3" r="2" fill="rgba(59,130,246,0.4)"/></svg></div>
-
-<div class="card">
-  <p class="eyebrow" id="ey">a little note, just for </p>
-  <h1 class="headline" id="hl">You <em></em></h1>
-  <div class="divider" id="dv"></div>
-  <p class="message" id="msg"></p>
-  
-  <div class="btn-container" id="btnContainer">
-    <button class="action-btn" id="actBtn" onclick="unlockSmile(event)">
-      click to unlock your smile <span class="smiley">😉👍</span><span class="arrow">→</span>
-    </button>
-    <div class="btn-ripple"></div>
-  </div>
-
-  <div class="hidden-content" id="secretContent">
-    <p class="wish" id="wsh">Wishing you nice exams —</p>
-    <span class="namesign" id="nm">Misoji.</span>
-    <p class="note" id="nt">you already know more than you think</p>
+    <div class="hidden-content" id="secretContent">
+      <p class="wish" id="wsh">Well it looks just like —</p>
+      <span class="namesign" id="nm">You.</span>
+    </div>
   </div>
 </div>
 
 <script>
-/* ── DYNAMIC CONTENT ENGINE (URL PARSER) ── */
-const urlParams = new URLSearchParams(window.location.search);
+/* ── PARALLAX ENGINE ── */
+let targetMouseX = 0, targetMouseY = 0;
+let currentMouseX = 0, currentMouseY = 0;
+const parallaxFactorCard = 0.025;
+const parallaxFactorStars = 0.04;
+const parallaxFactorNebula = 0.015;
 
-const customName = urlParams.get('name') || "You";
+window.addEventListener('mousemove', (e) => {
+  targetMouseX = (e.clientX - window.innerWidth / 2);
+  targetMouseY = (e.clientY - window.innerHeight / 2);
+  trackActivity(e.clientX, e.clientY);
+});
+
+window.addEventListener('touchmove', (e) => {
+  if(e.touches.length > 0) {
+    targetMouseX = (e.touches[0].clientX - window.innerWidth / 2);
+    targetMouseY = (e.touches[0].clientY - window.innerHeight / 2);
+    trackActivity(e.touches[0].clientX, e.touches[0].clientY);
+  }
+}, { passive: true });
+
+document.addEventListener('click', () => { initAudioEngine(); }, { once: false });
+document.addEventListener('touchstart', () => { initAudioEngine(); }, { once: false });
+
+function updateParallax() {
+  currentMouseX += (targetMouseX - currentMouseX) * 0.08;
+  currentMouseY += (targetMouseY - currentMouseY) * 0.08;
+  const card = document.getElementById('cardContainer');
+  if(card) {
+    const rotX = -currentMouseY * parallaxFactorCard;
+    const rotY = currentMouseX * parallaxFactorCard;
+    card.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(10px)`;
+  }
+  requestAnimationFrame(updateParallax);
+}
+updateParallax();
+
+/* ── CONFIGURATION PARSER ── */
+const urlParams = new URLSearchParams(window.location.search);
+const customName = urlParams.get('name') || "Misoji";
 const customHeadline = urlParams.get('headline') || "";
-const customWish = urlParams.get('wish') || "Wishing you nice exams —";
-const customSign = urlParams.get('sign') || "Misoji.";
-const customNote = urlParams.get('note') || "you already know more than you think";
-const customMessage = urlParams.get('message') || "You've already proven you know how to find your way through.*This exam is no different.";
+const customWish = urlParams.get('wish') || "Well it looks just like —";
+const customSign = urlParams.get('sign') || "You.";
+const customMessage = urlParams.get('message') || "Have you ever wondered how a beautiful moment looks like ?";
 
 document.getElementById('hl').innerHTML = `${customName} <em>${customHeadline}</em>`;
 document.getElementById('wsh').textContent = customWish;
 document.getElementById('nm').textContent = customSign;
-document.getElementById('nt').textContent = customNote;
 
-/* ── GENERATE TIMED WORD ELEMENTS ── */
+/* ── KINETIC CHARACTER INJECTION ── */
 const msgEl = document.getElementById('msg');
-const allWords = [];
-const textLines = customMessage.split('*'); 
-
-textLines.forEach((lineStr, li) => {
-  if (li > 0) msgEl.appendChild(document.createElement('br'));
-  
-  const wordsArray = lineStr.split(' ');
-  wordsArray.forEach((wordText, wi) => {
-    if (wi > 0) msgEl.appendChild(document.createTextNode(' '));
-    
-    const span = document.createElement('span');
-    span.className = 'w' + (li === textLines.length - 1 ? ' str' : '');
-    span.textContent = wordText;
-    msgEl.appendChild(span);
-    allWords.push(span);
-  });
+const charElements = [];
+customMessage.split("").forEach(char => {
+  const span = document.createElement('span');
+  span.className = 'char';
+  span.innerHTML = char === " " ? "&nbsp;" : char; 
+  msgEl.appendChild(span);
+  charElements.push(span);
 });
 
-/* ── CANVAS SETUP & PROPERTIES ── */
+/* ── CANVAS DESIGN MAPS ── */
 const bgC = document.getElementById('bgCanvas');
 const bgX = bgC.getContext('2d');
 const nbC = document.getElementById('nebulaCanvas');
 const nbX = nbC.getContext('2d');
-const ptC = document.getElementById('ptCanvas');
-const ptX = ptC.getContext('2d');
 const intC = document.getElementById('interactiveCanvas');
 const intX = intC.getContext('2d');
 
 let mouse = { x: -1000, y: -1000, active: false, px: -1000, py: -1000, vx: 0, vy: 0 };
 
 function resize() {
-  bgC.width = nbC.width = ptC.width = intC.width = window.innerWidth;
-  bgC.height = nbC.height = ptC.height = intC.height = window.innerHeight;
-  drawNebula();
+  bgC.width = nbC.width = intC.width = window.innerWidth;
+  bgC.height = nbC.height = intC.height = window.innerHeight;
+  drawNebulaBackground();
 }
 resize();
 window.addEventListener('resize', resize);
 
-function drawNebula() {
+function drawNebulaBackground() {
   nbX.clearRect(0, 0, nbC.width, nbC.height);
   const blobs = [
-    { x:0.15, y:0.2,  r:0.4, c:'rgba(59,130,246,0.05)' },
-    { x:0.8,  y:0.75, r:0.4, c:'rgba(96,165,250,0.04)' }
+    { x:0.2, y:0.3,  r:0.5, c:'rgba(99,102,241,0.08)' },
+    { x:0.7, y:0.7,  r:0.6, c:'rgba(139,92,246,0.06)' }
   ];
   blobs.forEach(b => {
     const grd = nbX.createRadialGradient(
@@ -462,222 +413,247 @@ function drawNebula() {
   });
 }
 
-/* ── RADIAL STARS: ALIGNED UNDER THE CENTRAL TEXTS ── */
-const starColors = [[15,30,54], [29,78,216], [59,130,246]];
-const stars = [];
-const maxStars = 55;
-
-function createStar() {
-  const angle = Math.random() * Math.PI * 2;
-  const speed = Math.random() * 1.5 + 0.5;
-  return {
-    x: 0, 
-    y: 0,
-    angle: angle,
-    speed: speed,
-    r: 0.1, 
-    opacity: 0,
-    col: starColors[Math.floor(Math.random() * starColors.length)]
-  };
-}
-
-for (let i = 0; i < maxStars; i++) {
-  let s = createStar();
-  s.x = Math.random() * Math.max(window.innerWidth, window.innerHeight) * 0.6; 
-  s.opacity = Math.random() * 0.6;
-  s.r = (s.x * 0.0035);
-  stars.push(s);
-}
+const starColors = ['rgba(248,250,252,', 'rgba(167,139,250,', 'rgba(96,165,250,'];
+const stars = Array.from({length: 65}, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  size: Math.random() * 1.5 + 0.5,
+  baseAlpha: Math.random() * 0.5 + 0.3,
+  speedY: -(Math.random() * 0.2 + 0.05),
+  speedX: (Math.random() - 0.5) * 0.1,
+  color: starColors[Math.floor(Math.random() * starColors.length)]
+}));
 
 function drawStars() {
   bgX.clearRect(0, 0, bgC.width, bgC.height);
-  
-  const centerX = bgC.width / 2;
-  const centerY = bgC.height / 2;
+  const shiftX = currentMouseX * parallaxFactorStars;
+  const shiftY = currentMouseY * parallaxFactorStars;
 
-  stars.forEach((s, idx) => {
-    s.speed += 0.035; 
-    s.x += s.speed;
-    s.r = Math.max(0.2, s.x * 0.0045);
-    
-    if (s.x < 80) {
-      s.opacity = Math.min(0.65, s.x / 80);
-    } else if (s.x > Math.max(centerX, centerY) * 0.8) {
-      s.opacity *= 0.92;
-    }
+  stars.forEach(s => {
+    s.y += s.speedY; s.x += s.speedX;
+    if (s.y < -10) s.y = bgC.height + 10;
+    if (s.x < -10) s.x = bgC.width + 10;
+    if (s.x > bgC.width + 10) s.x = -10;
 
-    const currentX = centerX + Math.cos(s.angle) * s.x;
-    const currentY = centerY + Math.sin(s.angle) * s.x;
+    const twinkle = Math.sin(Date.now() * 0.002 + s.x) * 0.2;
+    const finalAlpha = Math.max(0.1, Math.min(1, s.baseAlpha + twinkle));
 
-    if (currentX < -50 || currentX > bgC.width + 50 || currentY < -50 || currentY > bgC.height + 50 || s.opacity <= 0.01) {
-      stars[idx] = createStar();
-      return;
-    }
-
-    const [r,g,b] = s.col;
     bgX.beginPath();
-    bgX.arc(currentX, currentY, s.r, 0, Math.PI * 2);
-    bgX.fillStyle = `rgba(${r},${g},${b},${s.opacity.toFixed(3)})`;
+    bgX.arc(s.x + shiftX, s.y + shiftY, s.size, 0, Math.PI * 2);
+    bgX.fillStyle = s.color + finalAlpha + ')';
     bgX.fill();
   });
 }
 
-/* ── CONSTANT BACKGROUND FLOATERS ── */
-const ptColors = ['rgba(59,130,246,', 'rgba(29,78,216,'];
-const syms = ['✦','·','✧'];
-const pts = Array.from({length:8}, () => ({ 
-  x:  Math.random() * window.innerWidth,
-  y:  Math.random() * window.innerHeight + window.innerHeight,
-  sz: Math.random() * 1.4 + 1,
-  vy: -(Math.random() * 0.18 + 0.08),
-  vx: (Math.random() - 0.5) * 0.05,
-  op: Math.random() * 0.25 + 0.15,
-  s:  syms[Math.floor(Math.random() * syms.length)],
-  col: ptColors[Math.floor(Math.random() * ptColors.length)]
-}));
-
-function drawPts() {
-  ptX.clearRect(0, 0, ptC.width, ptC.height);
-  pts.forEach(p => {
-    p.y += p.vy;
-    p.x += p.vx;
-    if (p.y < -20) { p.y = ptC.height + 20; p.x = Math.random() * ptC.width; }
-    ptX.font = `${p.sz * 9}px serif`;
-    ptX.fillStyle = p.col + p.op + ')';
-    ptX.fillText(p.s, p.x, p.y);
-  });
-}
-
-/* ── INTERACTIVE BLUE EMBER TRAIL ── */
 let trailParticles = [];
-const interactiveGradients = ['rgba(59,130,246,', 'rgba(29,78,216,', 'rgba(96,165,250,'];
-const interactiveShapes = ['✦', '✧'];
+const interactiveGradients = ['rgba(167,139,250,', 'rgba(96,165,250,', 'rgba(248,250,252,'];
+const interactiveShapes = ['✦', '✧', '·'];
 
 function trackActivity(nx, ny) {
   if (mouse.px !== -1000) {
     mouse.vx = nx - mouse.px;
     mouse.vy = ny - mouse.py;
   }
-  mouse.px = mouse.x = nx;
-  mouse.py = mouse.y = ny;
-  mouse.active = true;
+  mouse.px = mouse.x = nx; mouse.py = mouse.y = ny; mouse.active = true;
 
-  const movementSpeed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
-  const spawnCount = Math.min(Math.floor(movementSpeed * 0.15) + 1, 2);
-
-  for(let i = 0; i < spawnCount; i++) {
+  const velocity = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
+  if (velocity > 2) {
     trailParticles.push({
-      x: nx + (Math.random() - 0.5) * 6,
-      y: ny + (Math.random() - 0.5) * 6,
-      size: Math.max(12 - movementSpeed * 0.15, 6) + Math.random() * 4, 
-      vx: (Math.random() - 0.5) * 0.8 + mouse.vx * 0.08,
-      vy: (Math.random() - 0.5) * 0.8 - 0.2 + mouse.vy * 0.08, 
+      x: nx, y: ny, size: Math.random() * 8 + 8,
+      vx: (Math.random() - 0.5) * 1 + mouse.vx * 0.05,
+      vy: (Math.random() - 0.5) * 1 - 0.3,
       shape: interactiveShapes[Math.floor(Math.random() * interactiveShapes.length)],
       color: interactiveGradients[Math.floor(Math.random() * interactiveGradients.length)],
-      alpha: 0.8,
-      rotation: Math.random() * Math.PI * 2,
-      rotationSpeed: (Math.random() - 0.5) * 0.08
+      alpha: 0.8, rotation: Math.random() * Math.PI * 2, rotationSpeed: (Math.random() - 0.5) * 0.05
     });
   }
 }
 
-/* ── UNLOCK SHOCKWAVE INTERACTION ── */
+/* ── CINEMATIC ROMANTIC AUDIO ENGINE ── */
+let audioCtx = null;
+let ambientDroneOsc = null;
+let ambientDroneGain = null;
+let isGenerativePlaying = false;
+
+function initAudioEngine() {
+  if (audioCtx) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return;
+  }
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+    startAmbientDrone();
+  } catch(e) { console.log('Audio Context initialization blocked.'); }
+}
+
+function startAmbientDrone() {
+  if (ambientDroneOsc) return;
+  
+  ambientDroneGain = audioCtx.createGain();
+  ambientDroneGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  // Soft fade-in for the underlying romantic warmth
+  ambientDroneGain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 2.5);
+  ambientDroneGain.connect(audioCtx.destination);
+
+  // Warm F-Major base pad (Low F key at ~87.31Hz)
+  ambientDroneOsc = audioCtx.createOscillator();
+  ambientDroneOsc.type = 'triangle';
+  ambientDroneOsc.frequency.setValueAtTime(87.31, audioCtx.currentTime);
+  ambientDroneOsc.connect(ambientDroneGain);
+  ambientDroneOsc.start();
+}
+
+function triggerCinematicClimax() {
+  if (!audioCtx) initAudioEngine();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const time = audioCtx.currentTime;
+  
+  if (ambientDroneGain) {
+    ambientDroneGain.gain.cancelScheduledValues(time);
+    ambientDroneGain.gain.setValueAtTime(ambientDroneGain.gain.value, time);
+    ambientDroneGain.gain.linearRampToValueAtTime(0.12, time + 0.1);
+    ambientDroneGain.gain.exponentialRampToValueAtTime(0.03, time + 5.0);
+  }
+
+  // Warm, deeply rich F Major 9 Arpeggio Array (F3 - A3 - C4 - E4 - G4 - A4)
+  const romanticScale = [174.61, 220.00, 261.63, 329.63, 392.00, 440.00];
+  
+  romanticScale.forEach((freq, idx) => {
+    // Elegant, deliberate note strum timing spacing
+    const noteDelay = idx * 0.09; 
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'sine'; 
+    osc.frequency.setValueAtTime(freq, time + noteDelay);
+    
+    // Tiny emotional micro-vibrato tuning glide
+    osc.frequency.linearRampToValueAtTime(freq * 0.998, time + noteDelay + 0.5);
+    osc.frequency.linearRampToValueAtTime(freq, time + noteDelay + 1.2);
+
+    gainNode.gain.setValueAtTime(0, time + noteDelay);
+    gainNode.gain.linearRampToValueAtTime(0.14, time + noteDelay + 0.05); // Balanced soft attack
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, time + noteDelay + 2.6);
+
+    // Warm stereo spatial delay simulator path
+    const echoGain = audioCtx.createGain();
+    echoGain.gain.setValueAtTime(0, time + noteDelay);
+    echoGain.gain.linearRampToValueAtTime(0.05, time + noteDelay + 0.4);
+    echoGain.gain.exponentialRampToValueAtTime(0.0001, time + noteDelay + 3.4);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.connect(echoGain);
+    echoGain.connect(audioCtx.destination);
+    
+    osc.start(time + noteDelay);
+    osc.stop(time + noteDelay + 4.0);
+  });
+
+  if (!isGenerativePlaying) {
+    isGenerativePlaying = true;
+    startStarTwinkleGenerator();
+  }
+}
+
+// Gentle acoustic backdrop loop that sounds like soft piano keys in an open hall
+function startStarTwinkleGenerator() {
+  if (!isGenerativePlaying || !audioCtx) return;
+  
+  const nextNoteDelay = Math.random() * 2800 + 1800; 
+  setTimeout(() => {
+    if (!isGenerativePlaying) return;
+    
+    // Emotional High Register Notes (A4, C5, E5, G5, A5)
+    const romanticTwinkles = [440.00, 523.25, 659.25, 783.99, 880.00];
+    const freq = romanticTwinkles[Math.floor(Math.random() * romanticTwinkles.length)];
+    const time = audioCtx.currentTime;
+    
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, time);
+    
+    gainNode.gain.setValueAtTime(0, time);
+    gainNode.gain.linearRampToValueAtTime(0.025, time + 0.15); // Long soft swell
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, time + 2.2);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start(time);
+    osc.stop(time + 2.5);
+    
+    startStarTwinkleGenerator();
+  }, nextNoteDelay);
+}
+
+/* ── UNLOCK INTERACTION ── */
 function unlockSmile(e) {
   e.preventDefault();
+  triggerCinematicClimax();
+
   const container = document.getElementById('btnContainer');
-  const btn = document.getElementById('actBtn');
   const msg = document.getElementById('msg');
   const secret = document.getElementById('secretContent');
   
   container.classList.add('hide-btn-container');
   msg.classList.add('expanded');
   
-  const rect = btn.getBoundingClientRect();
+  const rect = document.getElementById('actBtn').getBoundingClientRect();
   const startX = rect.left + rect.width / 2;
   const startY = rect.top + rect.height / 2;
 
-  for (let i = 0; i < 35; i++) {
-    const angle = (Math.PI * 2 / 35) * i + (Math.random() - 0.5) * 0.2;
-    const speed = Math.random() * 4.0 + 3.0;
+  for (let i = 0; i < 45; i++) {
+    const angle = (Math.PI * 2 / 45) * i + (Math.random() - 0.5) * 0.2;
+    const speed = Math.random() * 5.0 + 4.0;
     trailParticles.push({
-      x: startX,
-      y: startY,
-      size: Math.random() * 8 + 10,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 0.1,
+      x: startX, y: startY, size: Math.random() * 10 + 10,
+      vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 0.5,
       shape: interactiveShapes[Math.floor(Math.random() * interactiveShapes.length)],
       color: interactiveGradients[Math.floor(Math.random() * interactiveGradients.length)],
-      alpha: 1.0,
-      rotation: Math.random() * Math.PI * 2,
-      rotationSpeed: (Math.random() - 0.5) * 0.25
+      alpha: 1.0, rotation: Math.random() * Math.PI * 2, rotationSpeed: (Math.random() - 0.5) * 0.2
     });
   }
 
-  setTimeout(() => {
-    secret.classList.add('reveal');
-  }, 250);
+  setTimeout(() => { secret.classList.add('reveal'); }, 400);
 }
-
-window.addEventListener('mousemove', (e) => trackActivity(e.clientX, e.clientY));
-window.addEventListener('touchmove', (e) => {
-  if(e.touches.length > 0) trackActivity(e.touches[0].clientX, e.touches[0].clientY);
-}, { passive: true });
-window.addEventListener('mouseleave', () => { mouse.active = false; mouse.px = mouse.py = -1000; });
-window.addEventListener('touchend', () => { mouse.active = false; mouse.px = mouse.py = -1000; });
 
 function drawInteractiveTrail() {
   intX.clearRect(0, 0, intC.width, intC.height);
-  
-  mouse.vx *= 0.90;
-  mouse.vy *= 0.90;
-
   for (let i = trailParticles.length - 1; i >= 0; i--) {
     let p = trailParticles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.alpha -= 0.02; 
-    p.rotation += p.rotationSpeed;
+    p.x += p.vx; p.y += p.vy; p.alpha -= 0.015; p.rotation += p.rotationSpeed;
+    if (p.alpha <= 0) { trailParticles.splice(i, 1); continue; }
     
-    if (p.alpha <= 0) {
-      trailParticles.splice(i, 1);
-      continue;
-    }
-    
-    intX.save();
-    intX.translate(p.x, p.y);
-    intX.rotate(p.rotation);
-    intX.font = `${p.size}px Arial`;
-    intX.fillStyle = p.color + p.alpha + ')';
-    intX.textAlign = 'center';
-    intX.textBaseline = 'middle';
-    intX.fillText(p.shape, 0, 0);
-    intX.restore();
+    intX.save(); intX.translate(p.x, p.y); intX.rotate(p.rotation);
+    intX.font = `${p.size}px serif`; intX.fillStyle = p.color + p.alpha + ')';
+    intX.textAlign = 'center'; intX.textBaseline = 'middle';
+    intX.fillText(p.shape, 0, 0); intX.restore();
   }
 }
 
-/* ── ANIMATION LOOP ── */
-(function loop() {
-  drawStars();
-  drawPts();
-  drawInteractiveTrail();
-  requestAnimationFrame(loop);
+(function animationCore() {
+  drawStars(); drawInteractiveTrail();
+  requestAnimationFrame(animationCore);
 })();
 
-/* ── STAGED TIMELINE ── */
+/* ── TIMELINE REVEALS ── */
 const $ = id => document.getElementById(id);
-setTimeout(() => $('ey').classList.add('show'), 350);
-setTimeout(() => $('hl').classList.add('show'), 650);
-setTimeout(() => $('dv').classList.add('open'), 1050);
-setTimeout(() => document.querySelectorAll('.corner').forEach(c => c.classList.add('show')), 500);
+setTimeout(() => $('ey').classList.add('show'), 400);
+setTimeout(() => $('hl').classList.add('show'), 750);
+setTimeout(() => $('dv').classList.add('open'), 1150);
 
-const splitIndex = textLines[0] ? textLines[0].split(' ').length : 0;
-allWords.forEach((w, i) => {
-  const pause = i >= splitIndex ? 500 : 0;
-  setTimeout(() => w.classList.add('on'), 1600 + i * 95 + pause);
+charElements.forEach((charSpan, index) => {
+  setTimeout(() => { charSpan.classList.add('reveal-on'); }, 1600 + index * 45); 
 });
 
-const buttonDelay = 1600 + allWords.length * 95 + 500 + 350;
-setTimeout(() => $('actBtn').classList.add('show'), buttonDelay);
+const calculatedBtnDelay = 1600 + (charElements.length * 45) + 400;
+setTimeout(() => $('actBtn').classList.add('show'), calculatedBtnDelay);
 </script>
 </body>
 </html>
